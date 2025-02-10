@@ -3,10 +3,10 @@ import java.time.LocalDate;
 import java.util.*;
 
 public class Tienda2025 implements Serializable {
-	Scanner sc = new Scanner(System.in);
 	private final ArrayList<Pedido> pedidos;
 	private final HashMap<String, Articulo> articulos;
 	private final HashMap<String, Cliente> clientes;
+	Scanner sc = new Scanner(System.in);
 
 	public Tienda2025() {
 		this.pedidos = new ArrayList<>();
@@ -47,15 +47,15 @@ public class Tienda2025 implements Serializable {
 	public void menuArticulos() {
 		while (true) {
 			System.out.println();
-			String[] opciones = new String[]{"articulos", " ", "Lista Articulos", "Salir"};
+			String[] opciones = new String[]{"articulos", "Crear Articulo","Modificar Articulo","Eliminar Articulo","Lista Articulos", "Salir"};
 			MetodosAux.menu(opciones);
 			int n = opciones.length - 1;
 			int option = sc.nextInt();
 			switch (option) {
 				case 1:
-
+					crearArticulo();
 					break;
-				case 2:
+				case 4:
 					listArt();
 					break;
 			}
@@ -105,10 +105,44 @@ public class Tienda2025 implements Serializable {
 		}
 	}
 
+	public void crearArticulo() {
+		Articulo articulo = new Articulo("","",0,0);
+		System.out.print("Introduzca el ID >> ");
+		String id = sc.next();
+		boolean valido = validaArticulo(id);
+		while (! valido) {
+			System.out.println("\nEl ID no es válido");
+			System.out.print(">> ");
+			id = sc.next();
+			valido = validaArticulo(id);
+		}
+		boolean dupe = buscaArticulo(id) != null;
+		while (dupe) {
+			System.out.println("\nEl ID ya esta en uso");
+			System.out.print(">> ");
+			id = sc.next();
+			dupe = buscaArticulo(id) != null;
+		}
+		articulo.setIdArticulo(id);
+		sc.nextLine();
+		System.out.println("\nIntroduzca la descripción >>");
+		articulo.setDescripcion(sc.nextLine());
+		System.out.print("Introduzca las existencias >> ");
+		articulo.setExistencias(sc.nextInt());
+		System.out.print("Introduzca el precio >> ");
+		double pvp = sc.nextDouble();
+		articulo.setPvp(pvp);
+		articulos.put(articulo.getIdArticulo(), articulo);
+	}
+
 	public void listArt() {
 		ArrayList<Articulo> values = new ArrayList<>(articulos.values());
 		Collections.sort(values);
 		values.forEach(System.out::println);
+	}
+
+	public static boolean validaArticulo(String id) {
+		return id.matches("^\\d+-\\d+$");
 	}
 
 	public void listClientes() {
