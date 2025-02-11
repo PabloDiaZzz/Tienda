@@ -20,6 +20,10 @@ public class Tienda2025 implements Serializable {
 		tienda.menu();
 	}
 
+	public static boolean validaArticulo(String id) {
+		return id.matches("^[0-9]+-[0-9]+$");
+	}
+
 	public void menu() {
 		while (true) {
 			System.out.println();
@@ -47,13 +51,19 @@ public class Tienda2025 implements Serializable {
 	public void menuArticulos() {
 		while (true) {
 			System.out.println();
-			String[] opciones = new String[]{"articulos", "Crear Articulo","Modificar Articulo","Eliminar Articulo","Lista Articulos", "Salir"};
+			String[] opciones = new String[]{"articulos", "Crear Articulo", "Modificar Articulo", "Eliminar Articulo", "Lista Articulos", "Salir"};
 			MetodosAux.menu(opciones);
 			int n = opciones.length - 1;
 			int option = sc.nextInt();
 			switch (option) {
 				case 1:
 					crearArticulo();
+					break;
+				case 2:
+					modificarArticulo();
+					break;
+				case 3:
+					eliminarArticulo();
 					break;
 				case 4:
 					listArt();
@@ -106,27 +116,34 @@ public class Tienda2025 implements Serializable {
 	}
 
 	public void crearArticulo() {
-		Articulo articulo = new Articulo("","",0,0);
+		Articulo articulo = new Articulo("", "", 0, 0);
 		System.out.print("Introduzca el ID >> ");
-		String id = sc.next();
+		String id = sc.nextLine();
 		boolean valido = validaArticulo(id);
 		while (! valido) {
 			System.out.println("\nEl ID no es válido");
 			System.out.print(">> ");
-			id = sc.next();
+			id = sc.nextLine();
+			if (id.isBlank()) {
+				return;
+			}
 			valido = validaArticulo(id);
 		}
 		boolean dupe = buscaArticulo(id) != null;
 		while (dupe) {
 			System.out.println("\nEl ID ya esta en uso");
 			System.out.print(">> ");
-			id = sc.next();
+			id = sc.nextLine();
 			dupe = buscaArticulo(id) != null;
 		}
 		articulo.setIdArticulo(id);
 		sc.nextLine();
 		System.out.println("\nIntroduzca la descripción >>");
-		articulo.setDescripcion(sc.nextLine());
+		String desc = sc.nextLine();
+		if (desc.isBlank()) {
+			desc = "-";
+		}
+		articulo.setDescripcion(desc);
 		System.out.print("Introduzca las existencias >> ");
 		articulo.setExistencias(sc.nextInt());
 		System.out.print("Introduzca el precio >> ");
@@ -135,14 +152,108 @@ public class Tienda2025 implements Serializable {
 		articulos.put(articulo.getIdArticulo(), articulo);
 	}
 
+	public void modificarArticulo() {
+		String id = solicitaId();
+		boolean valido;
+		boolean encontrado;
+		Articulo mod = articulos.get(id);
+		while (true) {
+			System.out.println();
+			String[] opciones = new String[] {mod.getDescripcion(),"Id","Descripción","Existencias","Pvp","Salir"};
+			MetodosAux.menu(opciones);
+			int n = opciones.length - 1;
+			int option = sc.nextInt();
+			switch (option) {
+				case 1:
+					String idMod;
+					sc.nextLine();
+					valido = true;
+					encontrado = false;
+					do {
+						System.out.print(!valido ? "\nEl ID no es valido\n" : "");
+						System.out.print(encontrado ? "\nEl ID ya existe\n" : "");
+						System.out.print("Introduzca el ID >> ");
+						idMod = sc.nextLine();
+						encontrado = false;
+						valido = validaArticulo(idMod);
+						if (valido) {
+							encontrado = buscaArticulo(idMod) != null;
+						}
+						if (idMod.isBlank()) {
+							break;
+						}
+					} while (!valido || encontrado);
+					if (valido && !encontrado) {
+						mod.setIdArticulo(idMod);
+						articulos.put(idMod,mod);
+						articulos.remove(id);
+					}
+					break;
+				case 2:
+					String descMod;
+					sc.nextLine();
+					System.out.println("Introduzca la descripción >> ");
+					descMod = sc.nextLine();
+					if (descMod.isBlank()) {
+						break;
+					}
+					mod.setDescripcion(descMod);
+					articulos.put(id,mod);
+					break;
+				case 3:
+					int exsMod;
+					sc.nextLine();
+					System.out.print("Introduzca las existencias >> ");
+					exsMod = sc.nextInt();
+					mod.setExistencias(exsMod);
+					articulos.put(id,mod);
+					break;
+				case 4:
+					double pvpMod;
+					sc.nextLine();
+					System.out.print("Introduzca el PVP >> ");
+					pvpMod = sc.nextDouble();
+					mod.setPvp(pvpMod);
+					articulos.put(id,mod);
+					break;
+			}
+			if (option == n) {
+				return;
+			}
+		}
+	}
+
+	public void eliminarArticulo() {
+		articulos.remove(solicitaId());
+	}
+
+	public String solicitaId() {
+		listArt();
+		String id;
+		boolean valido = true;
+		boolean encontrado = true;
+		sc.nextLine();
+		do {
+			System.out.print(!valido ? "\nEl ID no es valido\n" : "");
+			System.out.print(!encontrado ? "\nEl ID no existe\n" : "");
+			System.out.print("Introduzca el ID >> ");
+			id = sc.nextLine();
+			encontrado = true;
+			valido = validaArticulo(id);
+			if (valido) {
+				encontrado = buscaArticulo(id) != null;
+			}
+			if (id.isBlank()) {
+				return null;
+			}
+		} while (!valido || !encontrado);
+		return id;
+	}
+
 	public void listArt() {
 		ArrayList<Articulo> values = new ArrayList<>(articulos.values());
 		Collections.sort(values);
 		values.forEach(System.out::println);
-	}
-
-	public static boolean validaArticulo(String id) {
-		return id.matches("^\\d+-\\d+$");
 	}
 
 	public void listClientes() {
