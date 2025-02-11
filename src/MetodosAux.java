@@ -3,7 +3,7 @@ import java.util.Arrays;
 public class MetodosAux {
 	public static boolean validarDni(String dni) {
 		// Verificar que el DNI tiene un formato válido
-		if (dni.isBlank() || ! dni.matches("\\d{8}[A-HJ-NP-TV-Z]")) {
+		if (dni.isBlank() || !dni.matches("\\d{8}[A-HJ-NP-TV-Z]")) {
 			return false;
 		}
 		// Extraer el número y la letra del DNI
