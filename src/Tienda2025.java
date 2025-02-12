@@ -1,3 +1,5 @@
+// NECESARIO AL MENOS EL METODO MetodosAux.java
+
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.*;
@@ -460,6 +462,7 @@ public class Tienda2025 implements Serializable {
 				}
 				if (contador == 0) {
 					System.out.println("El pedido no existe");
+					System.out.println();
 				} else {
 					break;
 				}
@@ -467,7 +470,7 @@ public class Tienda2025 implements Serializable {
 		}
 		while (true) {
 			System.out.println();
-			String[] opciones = new String[]{pMod.getIdPedido(),"Añadir articulo","Modificar articulo","Eliminar articulo","Listado articulos","Salir"};
+			String[] opciones = new String[]{pMod.getIdPedido(),"Añadir articulo","Modificar articulo","Eliminar articulo","Listado articulos","Modificar fecha","Salir"};
 			MetodosAux.menu(opciones);
 			int n = opciones.length - 1;
 			int option = sc.nextInt();
@@ -498,6 +501,7 @@ public class Tienda2025 implements Serializable {
 							try {
 								stock(pedidas, idT);
 								CestaCompraAux.add(new LineaPedido(idT, pedidas));
+								articulos.get(idT).setExistencias(articulos.get(idT).getExistencias() - pedidas);
 							} catch (StockAgotado | StockInsuficiente ex) {
 								System.out.println(ex.getMessage());
 								int disponibles = articulos.get(idT).getExistencias();
@@ -506,6 +510,7 @@ public class Tienda2025 implements Serializable {
 									opc = sc.nextLine();
 									if (opc.equalsIgnoreCase("S")) {
 										CestaCompraAux.add(new LineaPedido(idT, disponibles));
+										articulos.get(idT).setExistencias(0);
 									}
 								}
 							}
@@ -550,14 +555,18 @@ public class Tienda2025 implements Serializable {
 						int unidades = sc.nextInt();
 						try {
 							stock(unidades, art.getIdArticulo());
+							articulos.get(art.getIdArticulo()).setExistencias(articulos.get(art.getIdArticulo()).getExistencias() + pMod.getLineaPedido().get(option - 1).getUnidades());
 							pMod.getLineaPedido().get(option - 1).setUnidades(unidades);
+							articulos.get(art.getIdArticulo()).setExistencias(articulos.get(art.getIdArticulo()).getExistencias() - unidades);
 						} catch (StockAgotado | StockInsuficiente ex) {
 							System.out.println(ex.getMessage());
 							int disponibles = articulos.get(art.getIdArticulo()).getExistencias();
 							System.out.println("¿DESEA PEDIR LAS " + disponibles + " UNIDADES DISPONIBLES? (S/N)");
+							sc.nextLine();
 							String yn = sc.nextLine();
 							if (yn.equalsIgnoreCase("S")) {
 								pMod.getLineaPedido().get(option - 1).setUnidades(disponibles);
+								articulos.get(art.getIdArticulo()).setExistencias(0);
 						}}
 					}
 					break;
@@ -584,6 +593,7 @@ public class Tienda2025 implements Serializable {
 							sc.nextLine();
 							break;
 						}
+						articulos.get(pMod.getLineaPedido().get(option-1).getIdArticulo()).setExistencias(articulos.get(pMod.getLineaPedido().get(option-1).getIdArticulo()).getExistencias() + pMod.getLineaPedido().get(option-1).getUnidades());
 						pMod.getLineaPedido().remove(option - 1);
 					}
 					break;
@@ -591,6 +601,19 @@ public class Tienda2025 implements Serializable {
 					for (LineaPedido lp : pMod.getLineaPedido()) {
 						System.out.println(lp.getIdArticulo() + " - "+ String.join(" ", Arrays.stream(articulos.get(lp.getIdArticulo()).getDescripcion().split(" ")).map(String::trim).filter(v -> !v.isEmpty()).toArray(String[]::new)) + " (" + lp.getUnidades() + ")");
 					}
+					break;
+				case 5:
+					int d,m,y;
+					System.out.print("Introduzca el dia >> ");
+					d = sc.nextInt();
+					System.out.print("Introduzca el mes >> ");
+					m = sc.nextInt();
+					System.out.print("Introduzca el año >> ");
+					y = sc.nextInt();
+					sc.nextLine();
+					pMod.setFechaPedido(LocalDate.of(y,m,d));
+					String id = pMod.getIdPedido();
+					pMod.setIdPedido(id.split("[-/]")[0] + "-" + id.split("[-/]")[1] + "/" + y);
 					break;
 			}
 			if (option == n) {
@@ -625,6 +648,9 @@ public class Tienda2025 implements Serializable {
 				id = sc.nextInt();
 				for (Pedido p : pedidos) {
 					if (p.getIdPedido().equalsIgnoreCase(dni + "-" + String.format("%03d", id) + "/" + year)) {
+						for (LineaPedido l : p.getLineaPedido()) {
+							articulos.get(l.getIdArticulo()).setExistencias(articulos.get(l.getIdArticulo()).getExistencias() + l.getUnidades());
+						}
 						pedidos.remove(p);
 						return;
 					}
@@ -680,34 +706,28 @@ public class Tienda2025 implements Serializable {
 		return nuevoId;
 	}
 
+	// Al añadir un articulo al pedido las unidades se restan al stock para evitar sobrepasarlo mediante varios pedidos
 	public void nuevoPedido() {
 		ArrayList<LineaPedido> CestaCompraAux = new ArrayList<>();
 		String dniT, idT, opc, pedidasS = "";
 		int pedidas;
-		sc.nextLine();
 		do {
-			System.out.print("CLIENTE PEDIDO (DNI) >> ");
-			dniT = sc.nextLine().toUpperCase();
-			if (dniT.isBlank())
+			dniT = solicitaDni();
+			if (dniT == null) {
 				break;
-			if (!MetodosAux.validarDni(dniT)) {
-				System.out.println("DNI NO VÁLIDO");
-			}
-			if (!clientes.containsKey(dniT) && MetodosAux.validarDni(dniT)) {
-				System.out.println("DNI NO ENCONTRADO");
 			}
 		} while (!clientes.containsKey(dniT));
-		if (!dniT.isBlank()) {
-			System.out.println("INTRODUZCA LOS ARTÍCULOS QUE DESEA PEDIR UNO A UNO");
+		if (dniT != null) {
+			System.out.println("Introduzca los IDs uno a uno");
 			do {
-				System.out.println("INTRODUZCA EL CÓDIGO DEL ARTÍCULO (00 para terminar)");
+				System.out.println("ID del articulo (00 para terminar)");
 				System.out.print(">> ");
 				idT = sc.nextLine().toUpperCase();
 				if (idT.equals("00")) {
 					break;
 				}
 				if (!idT.isBlank() && articulos.containsKey(idT)) {
-					System.out.println("(" + articulos.get(idT).getDescripcion() + ") - UNIDADES?");
+					System.out.print(articulos.get(idT).getDescripcion() + "\nIntroduzca las Unidades >> ");
 					//Entrada de un int sobre un String - metodo esInt
 					do {
 						System.out.print(!MetodosAux.esInt(pedidasS) && !pedidasS.isBlank() ? "Introduzca un número\n" : "");
@@ -718,14 +738,16 @@ public class Tienda2025 implements Serializable {
 					try {
 						stock(pedidas, idT);
 						CestaCompraAux.add(new LineaPedido(idT, pedidas));
+						articulos.get(idT).setExistencias(articulos.get(idT).getExistencias() - pedidas);
 					} catch (StockAgotado | StockInsuficiente ex) {
 						System.out.println(ex.getMessage());
 						int disponibles = articulos.get(idT).getExistencias();
 						if (ex instanceof StockInsuficiente) {
-							System.out.println("¿DESEA PEDIR LAS " + disponibles + " UNIDADES DISPONIBLES? (S/N)");
+							System.out.println("¿Desea pedir las " + disponibles + " unidades disponibles? (S/N)");
 							opc = sc.nextLine();
 							if (opc.equalsIgnoreCase("S")) {
 								CestaCompraAux.add(new LineaPedido(idT, disponibles));
+								articulos.get(idT).setExistencias(0);
 							}
 						}
 					}
