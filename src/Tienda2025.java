@@ -1,14 +1,15 @@
 // NECESARIO AL MENOS EL METODO MetodosAux.java
 
-import java.io.Serializable;
+import java.io.*;
 import java.time.LocalDate;
 import java.util.*;
 
 public class Tienda2025 implements Serializable {
-	private final ArrayList<Pedido> pedidos;
-	private final HashMap<String, Articulo> articulos;
-	private final HashMap<String, Cliente> clientes;
+	static Tienda2025 tienda;
 	Scanner sc = new Scanner(System.in);
+	private ArrayList<Pedido> pedidos;
+	private HashMap<String, Articulo> articulos;
+	private HashMap<String, Cliente> clientes;
 
 	public Tienda2025() {
 		this.pedidos = new ArrayList<>();
@@ -18,7 +19,8 @@ public class Tienda2025 implements Serializable {
 
 	public static void main(String[] args) {
 		Tienda2025 tienda = new Tienda2025();
-		tienda.cargaDatos();
+		tienda.importarTienda();
+		//		tienda.cargaDatos();
 		tienda.menu();
 	}
 
@@ -29,7 +31,7 @@ public class Tienda2025 implements Serializable {
 	public void menu() {
 		while (true) {
 			System.out.println();
-			String[] opciones = new String[]{"tienda", "Articulos", "Clientes", "Pedidos", "Salir"};
+			String[] opciones = new String[]{"tienda", "Articulos", "Clientes", "Pedidos", "Copia de Seguridad", "Salir"};
 			MetodosAux.menu(opciones);
 			int n = opciones.length - 1;
 			int option = sc.nextInt();
@@ -42,6 +44,9 @@ public class Tienda2025 implements Serializable {
 					break;
 				case 3:
 					menuPedidos();
+					break;
+				case 4:
+					guardarTienda();
 					break;
 			}
 			if (option == n) {
@@ -246,7 +251,7 @@ public class Tienda2025 implements Serializable {
 
 	public void crearCliente() {
 		sc.nextLine();
-		Cliente cliente = new Cliente("", "", "","");
+		Cliente cliente = new Cliente("", "", "", "");
 		System.out.print("Introduzca el DNI >> ");
 		String dni = sc.nextLine();
 		if (dni.isBlank()) {
@@ -470,7 +475,7 @@ public class Tienda2025 implements Serializable {
 		}
 		while (true) {
 			System.out.println();
-			String[] opciones = new String[]{pMod.getIdPedido(),"Añadir articulo","Modificar articulo","Eliminar articulo","Listado articulos","Modificar fecha","Salir"};
+			String[] opciones = new String[]{pMod.getIdPedido(), "Añadir articulo", "Modificar articulo", "Eliminar articulo", "Listado articulos", "Modificar fecha", "Salir"};
 			MetodosAux.menu(opciones);
 			int n = opciones.length - 1;
 			int option = sc.nextInt();
@@ -567,7 +572,8 @@ public class Tienda2025 implements Serializable {
 							if (yn.equalsIgnoreCase("S")) {
 								pMod.getLineaPedido().get(option - 1).setUnidades(disponibles);
 								articulos.get(art.getIdArticulo()).setExistencias(0);
-						}}
+							}
+						}
 					}
 					break;
 				case 3:
@@ -593,17 +599,17 @@ public class Tienda2025 implements Serializable {
 							sc.nextLine();
 							break;
 						}
-						articulos.get(pMod.getLineaPedido().get(option-1).getIdArticulo()).setExistencias(articulos.get(pMod.getLineaPedido().get(option-1).getIdArticulo()).getExistencias() + pMod.getLineaPedido().get(option-1).getUnidades());
+						articulos.get(pMod.getLineaPedido().get(option - 1).getIdArticulo()).setExistencias(articulos.get(pMod.getLineaPedido().get(option - 1).getIdArticulo()).getExistencias() + pMod.getLineaPedido().get(option - 1).getUnidades());
 						pMod.getLineaPedido().remove(option - 1);
 					}
 					break;
 				case 4:
 					for (LineaPedido lp : pMod.getLineaPedido()) {
-						System.out.println(lp.getIdArticulo() + " - "+ String.join(" ", Arrays.stream(articulos.get(lp.getIdArticulo()).getDescripcion().split(" ")).map(String::trim).filter(v -> !v.isEmpty()).toArray(String[]::new)) + " (" + lp.getUnidades() + ")");
+						System.out.println(lp.getIdArticulo() + " - " + String.join(" ", Arrays.stream(articulos.get(lp.getIdArticulo()).getDescripcion().split(" ")).map(String::trim).filter(v -> !v.isEmpty()).toArray(String[]::new)) + " (" + lp.getUnidades() + ")");
 					}
 					break;
 				case 5:
-					int d,m,y;
+					int d, m, y;
 					System.out.print("Introduzca el dia >> ");
 					d = sc.nextInt();
 					System.out.print("Introduzca el mes >> ");
@@ -611,7 +617,7 @@ public class Tienda2025 implements Serializable {
 					System.out.print("Introduzca el año >> ");
 					y = sc.nextInt();
 					sc.nextLine();
-					pMod.setFechaPedido(LocalDate.of(y,m,d));
+					pMod.setFechaPedido(LocalDate.of(y, m, d));
 					String id = pMod.getIdPedido();
 					pMod.setIdPedido(id.split("[-/]")[0] + "-" + id.split("[-/]")[1] + "/" + y);
 					break;
@@ -667,20 +673,45 @@ public class Tienda2025 implements Serializable {
 	}
 
 	public void listaPedidos() {
-		Collections.sort(pedidos);
-		pedidos.forEach(System.out::println);
+		while (true) {
+			System.out.println();
+			String[] options = new String[]{"Ordenar pedidos", "Identificador", "Fecha", "Precio total mínimo", "Salir"};
+			MetodosAux.menu(options);
+			int option = sc.nextInt();
+			switch (option) {
+				case 1:
+					System.out.println();
+					Collections.sort(pedidos);
+					pedidos.forEach(System.out::println);
+					System.out.println();
+					break;
+				case 2:
+					System.out.println();
+					pedidos.sort(Pedido.compFecha);
+					pedidos.forEach(System.out::println);
+					System.out.println();
+					break;
+				case 3:
+					System.out.println();
+					System.out.print("Introduzca el valor >> ");
+					double v = sc.nextDouble();
+					pedidos.stream().filter(p -> totalPedido(p) > v).sorted(Comparator.comparing(this::totalPedido)).forEachOrdered(System.out::println);
+					System.out.println();
+					break;
+			}
+			if (option == options.length - 1) {
+				break;
+			}
+		}
+
 	}
 
-	public ArrayList<Pedido> getPedidos() {
-		return pedidos;
-	}
-
-	public HashMap<String, Articulo> getArticulos() {
-		return articulos;
-	}
-
-	public HashMap<String, Cliente> getClientes() {
-		return clientes;
+	public double totalPedido(Pedido p) {
+		double total = 0;
+		for (LineaPedido lp : p.getLineaPedido()) {
+			total += articulos.get(lp.getIdArticulo()).getPvp() * lp.getUnidades();
+		}
+		return total;
 	}
 
 	public void stock(int unidadesPed, String id) throws StockAgotado, StockInsuficiente {
@@ -761,6 +792,54 @@ public class Tienda2025 implements Serializable {
 
 	public Articulo buscaArticulo(String id) {
 		return articulos.get(id);
+	}
+
+	public void guardarTienda() {
+		String[] campos = new String[]{"articulos", "pedidos", "clientes"};
+		for (String c : campos) {
+			try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(c + ".dat"))) {
+				switch (c) {
+					case "articulos":
+						oos.writeObject(articulos);
+						break;
+					case "pedidos":
+						oos.writeObject(pedidos);
+						break;
+					case "clientes":
+						oos.writeObject(clientes);
+						break;
+					default:
+						throw new IllegalArgumentException("Unexpected value: " + c);
+				}
+			} catch (IOException e) {
+				System.out.println(e.getMessage());
+			}
+		}
+		System.out.println("[Datos guardados con exito]");
+	}
+
+	public void importarTienda() {
+		String[] campos = new String[]{"articulos", "pedidos", "clientes"};
+		for (String c : campos) {
+			try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(c + ".dat"))) {
+				switch (c) {
+					case "articulos":
+						articulos = (HashMap<String, Articulo>) ois.readObject();
+						break;
+					case "pedidos":
+						pedidos = (ArrayList<Pedido>) ois.readObject();
+						break;
+					case "clientes":
+						clientes = (HashMap<String, Cliente>) ois.readObject();
+						break;
+					default:
+						throw new IllegalArgumentException("Unexpected value: " + c);
+				}
+			} catch (IOException | ClassNotFoundException e) {
+				System.out.println(e.getMessage());
+			}
+		}
+		System.out.println("[Datos cargados con exito]");
 	}
 
 	public void cargaDatos() {

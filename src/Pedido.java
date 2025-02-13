@@ -1,10 +1,12 @@
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-public class Pedido implements Comparable<Pedido> {
+public class Pedido implements Comparable<Pedido>, Serializable {
 
 	static Comparator<Pedido> compId = Comparator.comparing(Pedido::getIdPedido).thenComparing(Pedido::getFechaPedido);
+	static Comparator<Pedido> compFecha = Comparator.comparing(Pedido::getFechaPedido).thenComparing(Pedido::getIdPedido);
 	private String idPedido;
 	private Cliente clientePedido;
 	private LocalDate fechaPedido;

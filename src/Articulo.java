@@ -1,6 +1,7 @@
+import java.io.Serializable;
 import java.util.Comparator;
 
-public class Articulo implements Comparable<Articulo> {
+public class Articulo implements Comparable<Articulo>, Serializable {
 
 	static Comparator<Articulo> compId = Comparator.comparing((Articulo a) -> Integer.parseInt(a.getIdArticulo().split("-")[0])).thenComparing((Articulo a) -> Integer.parseInt(a.getIdArticulo().split("-")[1])).thenComparing(Articulo::getPvp);
 	static Comparator<Articulo> compPvp = Comparator.comparing(Articulo::getPvp).thenComparing(compId);

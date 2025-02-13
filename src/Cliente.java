@@ -1,6 +1,7 @@
+import java.io.Serializable;
 import java.util.Comparator;
 
-public class Cliente implements Comparable<Cliente> {
+public class Cliente implements Comparable<Cliente>, Serializable {
 
 	static Comparator<Cliente> compDni = Comparator.comparing(Cliente::getDni);
 	private String dni;
