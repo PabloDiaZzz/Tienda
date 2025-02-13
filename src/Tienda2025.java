@@ -20,7 +20,7 @@ public class Tienda2025 implements Serializable {
 	public static void main(String[] args) {
 		Tienda2025 tienda = new Tienda2025();
 		tienda.importarTienda();
-		//		tienda.cargaDatos();
+//				tienda.cargaDatos();
 		tienda.menu();
 	}
 
@@ -428,6 +428,21 @@ public class Tienda2025 implements Serializable {
 	public void listArt() {
 		ArrayList<Articulo> values = new ArrayList<>(articulos.values());
 		Collections.sort(values);
+//		ArrayList<ArrayList<Dato>> tabla = new ArrayList<>();
+//		for (int i = 0; i < values.size() + 1; i++) {
+//			tabla.add(new ArrayList<>());
+//		}
+//		tabla.getFirst().add(new Dato("ID",0,"Texto"));
+//		tabla.getFirst().add(new Dato("Descripcion",0,"Texto")) ;
+//		tabla.getFirst().add(new Dato("Existencias",0,"Texto"));
+//		tabla.getFirst().add(new Dato("Pvp",0,"Texto"));
+//		for (int i = 1; i < values.size() + 1; i++) {
+//			tabla.get(i).add(new Dato(values.get(i-1).getIdArticulo(),0,"Texto"));
+//			tabla.get(i).add(new Dato(values.get(i-1).getDescripcion(),0,"Texto"));
+//			tabla.get(i).add(new Dato(String.valueOf(values.get(i-1).getExistencias()),0,"Texto"));
+//			tabla.get(i).add(new Dato(String.valueOf(values.get(i-1).getPvp()),0,"Texto"));
+//		}
+//		Gestor2.showInfo(tabla);
 		values.forEach(System.out::println);
 	}
 
@@ -484,18 +499,18 @@ public class Tienda2025 implements Serializable {
 					String opc, idT, pedidasS = "";
 					int pedidas;
 					ArrayList<LineaPedido> CestaCompraAux = pMod.getLineaPedido();
-					System.out.println("INTRODUZCA LOS ARTÍCULOS QUE DESEA PEDIR UNO A UNO");
+					System.out.println("Introduzca los IDs uno a uno");
 					sc.nextLine();
 					do {
-						System.out.print("ID ARTÍCULO (00 para terminar)");
-						System.out.print(" >> ");
+						System.out.println("ID del articulo (00 para terminar)");
+						System.out.print(">> ");
 						idT = sc.nextLine().toUpperCase();
 						if (idT.equals("00")) {
 							break;
 						}
 						String finalIdT = idT;
 						if (!idT.isBlank() && articulos.containsKey(idT) && CestaCompraAux.stream().noneMatch(l -> l.getIdArticulo().equals(finalIdT))) {
-							System.out.println("(" + articulos.get(idT).getDescripcion() + ") - UNIDADES?");
+							System.out.print(articulos.get(idT).getDescripcion() + "\nIntroduzca las Unidades >> ");
 							//Entrada de un int sobre un String - metodo esInt
 							do {
 								System.out.print(!MetodosAux.esInt(pedidasS) && !pedidasS.isBlank() ? "Introduzca un número\n" : "");
@@ -511,7 +526,7 @@ public class Tienda2025 implements Serializable {
 								System.out.println(ex.getMessage());
 								int disponibles = articulos.get(idT).getExistencias();
 								if (ex instanceof StockInsuficiente) {
-									System.out.println("¿DESEA PEDIR LAS " + disponibles + " UNIDADES DISPONIBLES? (S/N)");
+									System.out.println("¿Desea pedir las " + disponibles + " unidades disponibles? (S/N)");
 									opc = sc.nextLine();
 									if (opc.equalsIgnoreCase("S")) {
 										CestaCompraAux.add(new LineaPedido(idT, disponibles));
