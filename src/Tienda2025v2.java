@@ -618,9 +618,24 @@ public class Tienda2025v2 implements Serializable {
 					}
 					break;
 				case 4:
+					ArrayList<Articulo> values = new ArrayList<>(List.of(pMod.getLineaPedido().stream().map(v -> articulos.get(v.getIdArticulo())).toArray(Articulo[]::new)));
+					Collections.sort(values);
+					ArrayList<ArrayList<Dato>> tabla = new ArrayList<>();
+					tabla.add(new ArrayList<>());
 					for (LineaPedido lp : pMod.getLineaPedido()) {
-						System.out.println(lp.getIdArticulo() + " - " + String.join(" ", Arrays.stream(articulos.get(lp.getIdArticulo()).getDescripcion().split(" ")).map(String::trim).filter(v -> !v.isEmpty()).toArray(String[]::new)) + " (" + lp.getUnidades() + ")");
+						tabla.add(new ArrayList<>());
 					}
+					tabla.getFirst().add(new Dato("ID",0,"Texto"));
+					tabla.getFirst().add(new Dato("Descripcion",0,"Texto")) ;
+					tabla.getFirst().add(new Dato("Unidades",0,"Texto"));
+					tabla.getFirst().add(new Dato("Pvp",0,"Texto"));
+					for (int i = 1; i < values.size() + 1; i++) {
+						tabla.get(i).add(new Dato(values.get(i-1).getIdArticulo(),0,"Clave"));
+						tabla.get(i).add(new Dato(String.join(" ", Arrays.stream(values.get(i-1).getDescripcion().split(" ")).filter(s -> !s.isEmpty()).map(String::trim).toArray(String[]::new)),0,"Texto"));
+						tabla.get(i).add(new Dato(String.valueOf(values.get(i-1).getExistencias()),0,"Texto"));
+						tabla.get(i).add(new Dato(String.valueOf(values.get(i-1).getPvp()),0,"Texto"));
+					}
+					Gestor2.showInfo(tabla);
 					break;
 				case 5:
 					int d, m, y;
@@ -706,11 +721,12 @@ public class Tienda2025v2 implements Serializable {
 			String[] options = new String[]{"Ordenar pedidos", "Identificador", "Fecha", "Precio total mínimo", "Salir"};
 			MetodosAux.menu(options);
 			int option = sc.nextInt();
+			ArrayList<ArrayList<Dato>> tabla;
 			switch (option) {
 				case 1:
 					System.out.println();
 					Collections.sort(pedidos);
-					ArrayList<ArrayList<Dato>> tabla = new ArrayList<>();
+					tabla = new ArrayList<>();
 					for (int i = 0; i < pedidos.size() + 1; i++) {
 						tabla.add(new ArrayList<>());
 					}
@@ -732,15 +748,50 @@ public class Tienda2025v2 implements Serializable {
 					break;
 				case 2:
 					System.out.println();
+					tabla = new ArrayList<>();
 					pedidos.sort(Pedido.compFecha);
-					pedidos.forEach(System.out::println);
+					for (int i = 0; i < pedidos.size() + 1; i++) {
+						tabla.add(new ArrayList<>());
+					}
+					tabla.getFirst().add(new Dato("ID", 0, "Clave"));
+					tabla.getFirst().add(new Dato("DNI", 0, "Clave"));
+					tabla.getFirst().add(new Dato("Fecha", 0, "Texto"));
+					tabla.getFirst().add(new Dato("Lista Compra", 0, "Texto"));
+					tabla.getFirst().add(new Dato("Pvp total", 0, "Texto"));
+					for (int i = 1; i < pedidos.size() + 1; i++) {
+						tabla.get(i).add(new Dato(pedidos.get(i - 1).getIdPedido(), 0, "Clave"));
+						tabla.get(i).add(new Dato(pedidos.get(i - 1).getClientePedido().getDni(), 0, "Clave"));
+						tabla.get(i).add(new Dato(pedidos.get(i - 1).getFechaPedido().toString(), 0, "Texto"));
+						tabla.get(i).add(new Dato(pedidos.get(i - 1).getLineaPedido().toString().substring(1, pedidos.get(i - 1).getLineaPedido().toString().length() - 1), 0, "Texto"));
+						tabla.get(i).add(new Dato(String.format("%.2f", totalPedido(pedidos.get(i - 1))) + "€", 0, "Texto"));
+					}
+					Gestor2.showInfo(tabla);
+//					pedidos.forEach(System.out::println);
 					System.out.println();
 					break;
 				case 3:
 					System.out.println();
 					System.out.print("Introduzca el valor >> ");
 					double v = sc.nextDouble();
-					pedidos.stream().filter(p -> totalPedido(p) > v).sorted(Comparator.comparing(this::totalPedido)).forEachOrdered(System.out::println);
+					ArrayList<Pedido> pedidosFiltrados = new ArrayList<>(List.of(pedidos.stream().filter(p -> totalPedido(p) > v).sorted(Comparator.comparing(this::totalPedido)).toArray(Pedido[]::new)));
+					tabla = new ArrayList<>();
+					for (int i = 0; i < pedidosFiltrados.size() + 1; i++) {
+						tabla.add(new ArrayList<>());
+					}
+					tabla.getFirst().add(new Dato("ID", 0, "Clave"));
+					tabla.getFirst().add(new Dato("DNI", 0, "Clave"));
+					tabla.getFirst().add(new Dato("Fecha", 0, "Texto"));
+					tabla.getFirst().add(new Dato("Lista Compra", 0, "Texto"));
+					tabla.getFirst().add(new Dato("Pvp total", 0, "Texto"));
+					for (int i = 1; i < pedidosFiltrados.size() + 1; i++) {
+						tabla.get(i).add(new Dato(pedidosFiltrados.get(i - 1).getIdPedido(), 0, "Clave"));
+						tabla.get(i).add(new Dato(pedidosFiltrados.get(i - 1).getClientePedido().getDni(), 0, "Clave"));
+						tabla.get(i).add(new Dato(pedidosFiltrados.get(i - 1).getFechaPedido().toString(), 0, "Texto"));
+						tabla.get(i).add(new Dato(pedidosFiltrados.get(i - 1).getLineaPedido().toString().substring(1, pedidosFiltrados.get(i - 1).getLineaPedido().toString().length() - 1), 0, "Texto"));
+						tabla.get(i).add(new Dato(String.format("%.2f", totalPedido(pedidosFiltrados.get(i - 1))) + "€", 0, "Texto"));
+					}
+					Gestor2.showInfo(tabla);
+//					pedidos.stream().filter(p -> totalPedido(p) > v).sorted(Comparator.comparing(this::totalPedido)).forEach(System.out::println);
 					System.out.println();
 					break;
 			}
