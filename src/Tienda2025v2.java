@@ -4,21 +4,21 @@ import java.io.*;
 import java.time.LocalDate;
 import java.util.*;
 
-public class Tienda2025 implements Serializable {
-	static Tienda2025 tienda;
+public class Tienda2025v2 implements Serializable {
+	static Tienda2025v2 tienda;
 	Scanner sc = new Scanner(System.in);
 	private ArrayList<Pedido> pedidos;
 	private HashMap<String, Articulo> articulos;
 	private HashMap<String, Cliente> clientes;
 
-	public Tienda2025() {
+	public Tienda2025v2() {
 		this.pedidos = new ArrayList<>();
 		this.articulos = new HashMap<>();
 		this.clientes = new HashMap<>();
 	}
 
 	public static void main(String[] args) {
-		Tienda2025 tienda = new Tienda2025();
+		Tienda2025v2 tienda = new Tienda2025v2();
 		tienda.importarTienda();
 //				tienda.cargaDatos();
 		tienda.menu();
@@ -428,7 +428,21 @@ public class Tienda2025 implements Serializable {
 	public void listArt() {
 		ArrayList<Articulo> values = new ArrayList<>(articulos.values());
 		Collections.sort(values);
-		values.forEach(System.out::println);
+		ArrayList<ArrayList<Dato>> tabla = new ArrayList<>();
+		for (int i = 0; i < values.size() + 1; i++) {
+			tabla.add(new ArrayList<>());
+		}
+		tabla.getFirst().add(new Dato("ID",0,"Texto"));
+		tabla.getFirst().add(new Dato("Descripcion",0,"Texto")) ;
+		tabla.getFirst().add(new Dato("Unidades",0,"Texto"));
+		tabla.getFirst().add(new Dato("Pvp",0,"Texto"));
+		for (int i = 1; i < values.size() + 1; i++) {
+			tabla.get(i).add(new Dato(values.get(i-1).getIdArticulo(),0,"Clave"));
+			tabla.get(i).add(new Dato(String.join(" ", Arrays.stream(values.get(i-1).getDescripcion().split(" ")).filter(s -> !s.isEmpty()).map(String::trim).toArray(String[]::new)),0,"Texto"));
+			tabla.get(i).add(new Dato(String.valueOf(values.get(i-1).getExistencias()),0,"Texto"));
+			tabla.get(i).add(new Dato(String.valueOf(values.get(i-1).getPvp()),0,"Texto"));
+		}
+		Gestor2.showInfo(tabla);
 	}
 
 	public void modificarPedido() {
@@ -669,7 +683,21 @@ public class Tienda2025 implements Serializable {
 	public void listClientes() {
 		ArrayList<Cliente> values = new ArrayList<>(clientes.values());
 		Collections.sort(values);
-		values.forEach(System.out::println);
+		ArrayList<ArrayList<Dato>> tabla = new ArrayList<>();
+		for (int i = 0; i < values.size() + 1; i++) {
+			tabla.add(new ArrayList<>());
+		}
+		tabla.getFirst().add(new Dato("DNI", 0, "Texto"));
+		tabla.getFirst().add(new Dato("Nombre", 0, "Texto"));
+		tabla.getFirst().add(new Dato("Direccion", 0, "Texto"));
+		tabla.getFirst().add(new Dato("Telefono", 0, "Texto"));
+		for (int i = 1; i < values.size() + 1; i++) {
+			tabla.get(i).add(new Dato(values.get(i - 1).getDni(), 0, "Clave"));
+			tabla.get(i).add(new Dato(values.get(i - 1).getNombre(), 0, "Texto"));
+			tabla.get(i).add(new Dato(values.get(i - 1).getEmail(), 0, "Texto"));
+			tabla.get(i).add(new Dato(values.get(i - 1).getTelefono(), 0, "Texto"));
+		}
+		Gestor2.showInfo(tabla);
 	}
 
 	public void listaPedidos() {
@@ -682,7 +710,24 @@ public class Tienda2025 implements Serializable {
 				case 1:
 					System.out.println();
 					Collections.sort(pedidos);
-					pedidos.forEach(System.out::println);
+					ArrayList<ArrayList<Dato>> tabla = new ArrayList<>();
+					for (int i = 0; i < pedidos.size() + 1; i++) {
+						tabla.add(new ArrayList<>());
+					}
+					tabla.getFirst().add(new Dato("ID", 0, "Clave"));
+					tabla.getFirst().add(new Dato("DNI", 0, "Clave"));
+					tabla.getFirst().add(new Dato("Fecha", 0, "Texto"));
+					tabla.getFirst().add(new Dato("Lista Compra", 0, "Texto"));
+					tabla.getFirst().add(new Dato("Pvp total", 0, "Texto"));
+					for (int i = 1; i < pedidos.size() + 1; i++) {
+						tabla.get(i).add(new Dato(pedidos.get(i - 1).getIdPedido(), 0, "Clave"));
+						tabla.get(i).add(new Dato(pedidos.get(i - 1).getClientePedido().getDni(), 0, "Clave"));
+						tabla.get(i).add(new Dato(pedidos.get(i - 1).getFechaPedido().toString(), 0, "Texto"));
+						tabla.get(i).add(new Dato(pedidos.get(i - 1).getLineaPedido().toString().substring(1, pedidos.get(i - 1).getLineaPedido().toString().length() - 1), 0, "Texto"));
+						tabla.get(i).add(new Dato(String.format("%.2f", totalPedido(pedidos.get(i - 1))) + "€", 0, "Texto"));
+					}
+					Gestor2.showInfo(tabla);
+//					pedidos.forEach(System.out::println);
 					System.out.println();
 					break;
 				case 2:
