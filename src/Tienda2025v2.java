@@ -6,7 +6,7 @@ import java.util.*;
 
 public class Tienda2025v2 implements Serializable {
 	static Tienda2025v2 tienda;
-	Scanner sc = new Scanner(System.in);
+	static Scanner sc = new Scanner(System.in);
 	private ArrayList<Pedido> pedidos;
 	private HashMap<String, Articulo> articulos;
 	private HashMap<String, Cliente> clientes;
@@ -19,8 +19,15 @@ public class Tienda2025v2 implements Serializable {
 
 	public static void main(String[] args) {
 		Tienda2025v2 tienda = new Tienda2025v2();
-		tienda.importarTienda();
-//				tienda.cargaDatos();
+		boolean cargado = tienda.importarTienda();
+		if (!cargado) {
+			System.out.println("[Los datos no se han podido cargar]");
+			System.out.print("Desea cargar el modelo (S/N) >> ");
+			String opc = sc.nextLine();
+			if (opc.equalsIgnoreCase("s")) {
+				tienda.cargaDatos();
+			}
+		}
 		tienda.menu();
 	}
 
@@ -914,7 +921,8 @@ public class Tienda2025v2 implements Serializable {
 		System.out.println("[Datos guardados con exito]");
 	}
 
-	public void importarTienda() {
+	public boolean importarTienda() {
+		int contador = 0;
 		String[] campos = new String[]{"articulos", "pedidos", "clientes"};
 		for (String c : campos) {
 			try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(c + ".dat"))) {
@@ -933,9 +941,14 @@ public class Tienda2025v2 implements Serializable {
 				}
 			} catch (IOException | ClassNotFoundException e) {
 				System.out.println(e.getMessage());
+				contador++;
 			}
 		}
-		System.out.println("[Datos cargados con exito]");
+		if (contador != campos.length) {
+			System.out.println("[Datos cargados con exito]");
+			return true;
+		}
+		return false;
 	}
 
 	public void cargaDatos() {
