@@ -1,1 +1,1 @@
-<h1><a href="https://github.com/PabloDiaZzz/Gestor/raw/refs/heads/master/bin/Gestor%20de%20Entidades.jar">Libreria para usar Tienda2025v2</a></h1>
+<h1 style="text-decoration-style: wavy; text-decoration-line: underline"><a href="https://github.com/PabloDiaZzz/Gestor/raw/refs/heads/master/bin/Gestor%20de%20Entidades.jar">Libreria para usar Tienda2025v2</a></h1>
