@@ -65,7 +65,7 @@ public class Tienda2025v2 implements Serializable {
 	public void menuArticulos() {
 		while (true) {
 			System.out.println();
-			String[] opciones = new String[]{"articulos", "Crear Articulo", "Modificar Articulo", "Eliminar Articulo", "Lista Articulos", "Salir"};
+			String[] opciones = new String[]{"articulos", "Crear Articulo", "Modificar Articulo", "Eliminar Articulo", "Lista Articulos", "Unidades vendidas", "Salir"};
 			MetodosAux.menu(opciones);
 			int n = opciones.length - 1;
 			int option = sc.nextInt();
@@ -81,6 +81,9 @@ public class Tienda2025v2 implements Serializable {
 					break;
 				case 4:
 					listArt();
+					break;
+				case 5:
+					udsVendidas();
 					break;
 			}
 			if (option == n) {
@@ -254,6 +257,32 @@ public class Tienda2025v2 implements Serializable {
 
 	public void eliminarArticulo() {
 		articulos.remove(solicitaId());
+	}
+
+	public void udsVendidas() {
+		ArrayList<ArrayList<Dato>> tabla = new ArrayList<>();
+		tabla.add(new ArrayList<>(List.of(new Dato("ID"), new Dato("Descripción"), new Dato("Uds"))));
+		System.out.println();
+		articulos.values().stream()
+				.sorted()
+				.map(a -> {
+					List<String> b = new ArrayList<>();
+					b.add(a.getIdArticulo());
+					b.add(a.getDescripcion());
+					b.add(String.valueOf(pedidos.stream().flatMap(p -> p.getLineaPedido().stream())
+							.filter(lp -> lp.getIdArticulo().equals(a.getIdArticulo()))
+							.mapToInt(LineaPedido::getUnidades)
+							.sum()));
+					return b;
+				})
+				.forEach(e -> {
+					Dato d1 = new Dato(e.get(0), 0, "Clave");
+					Dato d2 = new Dato(e.get(1), 0, "Texto");
+					Dato d3 = new Dato(e.get(2), 0, "Entero");
+					tabla.add(new ArrayList<>(Arrays.asList(d1, d2, d3)));
+				});
+		Gestor2.showInfo(tabla);
+
 	}
 
 	public void crearCliente() {

@@ -1,5 +1,7 @@
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.stream.Collectors;
 
 public class Articulo implements Comparable<Articulo>, Serializable {
 
@@ -26,7 +28,7 @@ public class Articulo implements Comparable<Articulo>, Serializable {
 	}
 
 	public String getDescripcion() {
-		return descripcion;
+		return Arrays.stream(descripcion.split(" ")).map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.joining(" "));
 	}
 
 	public void setDescripcion(String descripcion) {

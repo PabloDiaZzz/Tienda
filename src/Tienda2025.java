@@ -65,7 +65,7 @@ public class Tienda2025 implements Serializable {
 	public void menuArticulos() {
 		while (true) {
 			System.out.println();
-			String[] opciones = new String[]{"articulos", "Crear Articulo", "Modificar Articulo", "Eliminar Articulo", "Lista Articulos", "Salir"};
+			String[] opciones = new String[]{"articulos", "Crear Articulo", "Modificar Articulo", "Eliminar Articulo", "Lista Articulos", "Unidades vendidas", "Salir"};
 			MetodosAux.menu(opciones);
 			int n = opciones.length - 1;
 			int option = sc.nextInt();
@@ -81,6 +81,9 @@ public class Tienda2025 implements Serializable {
 					break;
 				case 4:
 					listArt();
+					break;
+				case 5:
+					udsVendidas();
 					break;
 			}
 			if (option == n) {
@@ -254,6 +257,12 @@ public class Tienda2025 implements Serializable {
 
 	public void eliminarArticulo() {
 		articulos.remove(solicitaId());
+	}
+
+	public void udsVendidas() {
+		System.out.println();
+		System.out.println("Unidades vendidas por Articulo:");
+		articulos.values().stream().sorted().peek(a -> System.out.print(a.getIdArticulo() + " - " + a.getDescripcion() + " - Uds: ")).map(a -> pedidos.stream().flatMap(p -> p.getLineaPedido().stream()).filter(lp -> lp.getIdArticulo().equals(a.getIdArticulo())).mapToInt(LineaPedido::getUnidades).sum()).forEach(System.out::println);
 	}
 
 	public void crearCliente() {
