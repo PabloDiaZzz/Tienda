@@ -57,4 +57,12 @@ public class Cliente implements Comparable<Cliente>, Serializable {
 	public int compareTo(Cliente o) {
 		return compDni.compare(this, o);
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof Cliente) {
+			return ((Cliente) o).getDni().equals(this.getDni()) || o == this;
+		}
+		return false;
+	}
 }
