@@ -65,7 +65,7 @@ public class Tienda2025 implements Serializable {
 	public void menuArticulos() {
 		while (true) {
 			System.out.println();
-			String[] opciones = new String[]{"articulos", "Crear Articulo", "Modificar Articulo", "Eliminar Articulo", "Lista Articulos", "Unidades vendidas", "Salir"};
+			String[] opciones = new String[]{"articulos", "Crear Articulo", "Modificar Articulo", "Eliminar Articulo", "Lista Articulos", "Unidades vendidas", "Historial de Articulo", "Articulos por Categoria", "Salir"};
 			MetodosAux.menu(opciones);
 			int n = opciones.length - 1;
 			int option = sc.nextInt();
@@ -84,6 +84,12 @@ public class Tienda2025 implements Serializable {
 					break;
 				case 5:
 					udsVendidas();
+					break;
+				case 6:
+					historialArticulo();
+					break;
+				case 7:
+					artCategoria();
 					break;
 			}
 			if (option == n) {
@@ -122,7 +128,7 @@ public class Tienda2025 implements Serializable {
 	public void menuClientes() {
 		while (true) {
 			System.out.println();
-			String[] opciones = new String[]{"clientes", "Crear cliente", "Modificar cliente", "Eliminar cliente", "Lista Clientes", "Salir"};
+			String[] opciones = new String[]{"clientes", "Crear cliente", "Modificar cliente", "Eliminar cliente", "Lista Clientes", "Gasto por Cliente", "Salir"};
 			MetodosAux.menu(opciones);
 			int n = opciones.length - 1;
 			int option = sc.nextInt();
@@ -138,6 +144,9 @@ public class Tienda2025 implements Serializable {
 					break;
 				case 4:
 					listClientes();
+					break;
+				case 5:
+					gastoClientes();
 					break;
 			}
 			if (option == n) {
@@ -263,6 +272,43 @@ public class Tienda2025 implements Serializable {
 		System.out.println();
 		System.out.println("Unidades vendidas por Articulo:");
 		articulos.values().stream().sorted().peek(a -> System.out.print(a.getIdArticulo() + " - " + a.getDescripcion() + " - Uds: ")).map(a -> pedidos.stream().flatMap(p -> p.getLineaPedido().stream()).filter(lp -> lp.getIdArticulo().equals(a.getIdArticulo())).mapToInt(LineaPedido::getUnidades).sum()).forEach(System.out::println);
+	}
+
+	public void historialArticulo() {
+		String id = solicitaId();
+		Articulo art = buscaArticulo(id);
+		int uds = pedidos.stream().flatMap(p -> p.getLineaPedido().stream()).filter(lp -> lp.getIdArticulo().equals(id)).mapToInt(LineaPedido::getUnidades).sum();
+		if (art != null && uds != 0) {
+			System.out.println();
+			System.out.print("Unidades de " + art.getDescripcion() + " adquiridas: ");
+			System.out.println(uds);
+			System.out.println("Clientes que lo han comprado:");
+			pedidos.stream().filter(p -> p.getLineaPedido().stream().anyMatch(lp -> lp.getIdArticulo().equals(id))).map(Pedido::getClientePedido).distinct().forEach(System.out::println);
+			System.out.println();
+		} else if (uds == 0) {
+			System.out.println();
+			System.out.println("Este articulo no se ha vendido");
+		}
+	}
+
+	public void artCategoria() {
+		while (true) {
+			System.out.println();
+			String[] opciones = new String[]{"categorias", "Perifericos", "Almacenamiento", "Impresoras", "Monitores", "Todos", "Salir"};
+			int n = opciones.length - 1;
+			MetodosAux.menu(opciones);
+			int opc = sc.nextInt();
+			System.out.println();
+			if (opc == n - 1) {
+				listArt();
+			} else {
+				System.out.println(opciones[opc].toUpperCase());
+				articulos.values().stream().sorted().filter(art -> art.getIdArticulo().replaceAll("(\\d+)-(\\d+)", "$1").equals(String.valueOf(opc))).forEach(System.out::println);
+			}
+			if (opc == n) {
+				return;
+			}
+		}
 	}
 
 	public void crearCliente() {
@@ -394,6 +440,16 @@ public class Tienda2025 implements Serializable {
 
 	public void eliminarCliente() {
 		clientes.remove(solicitaDni());
+	}
+
+	public void gastoClientes() {
+		System.out.println("Gasto por clientes: ");
+		HashMap<Cliente, Double> gasto = new HashMap<>();
+		clientes.forEach((k, a) -> {
+			double total = pedidos.stream().filter(p -> p.getClientePedido().equals(a)).mapToDouble(p -> p.getLineaPedido().stream().mapToDouble(art -> articulos.get(art.getIdArticulo()).getPvp() * art.getUnidades()).sum()).sum();
+			gasto.put(a, total);
+		});
+		gasto.keySet().stream().sorted(Comparator.comparing(gasto::get).reversed()).forEach(k -> System.out.println(k.getDni() + " - " + k.getNombre() + " - " + gasto.get(k) + "€"));
 	}
 
 	public String solicitaId() {
