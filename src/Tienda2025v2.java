@@ -262,7 +262,6 @@ public class Tienda2025v2 implements Serializable {
 	public void udsVendidas() {
 		ArrayList<ArrayList<Dato>> tabla = new ArrayList<>();
 		tabla.add(new ArrayList<>(List.of(new Dato("ID"), new Dato("Descripción"), new Dato("Uds"))));
-		System.out.println();
 		articulos.values().stream()
 				.sorted()
 				.map(a -> {

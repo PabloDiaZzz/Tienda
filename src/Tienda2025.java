@@ -53,7 +53,7 @@ public class Tienda2025 implements Serializable {
 					menuPedidos();
 					break;
 				case 4:
-					guardarTienda();
+					menuCopia();
 					break;
 			}
 			if (option == n) {
@@ -147,6 +147,30 @@ public class Tienda2025 implements Serializable {
 					break;
 				case 5:
 					gastoClientes();
+					break;
+			}
+			if (option == n) {
+				return;
+			}
+		}
+	}
+
+	public void menuCopia() {
+		while (true) {
+			System.out.println();
+			String[] opciones = new String[]{"copia", "Copia de Seguridad", "Guardar Pedidos", "Buscar Pedidos", "Salir"};
+			MetodosAux.menu(opciones);
+			int n = opciones.length - 1;
+			int option = sc.nextInt();
+			switch (option) {
+				case 1:
+					guardarTienda();
+					break;
+				case 2:
+					guardarPedidos();
+					break;
+				case 3:
+					buscarPedidos();
 					break;
 			}
 			if (option == n) {
@@ -277,17 +301,8 @@ public class Tienda2025 implements Serializable {
 	public void historialArticulo() {
 		String id = solicitaId();
 		Articulo art = buscaArticulo(id);
-		int uds = pedidos.stream().flatMap(p -> p.getLineaPedido().stream()).filter(lp -> lp.getIdArticulo().equals(id)).mapToInt(LineaPedido::getUnidades).sum();
-		if (art != null && uds != 0) {
-			System.out.println();
-			System.out.print("Unidades de " + art.getDescripcion() + " adquiridas: ");
-			System.out.println(uds);
-			System.out.println("Clientes que lo han comprado:");
-			pedidos.stream().filter(p -> p.getLineaPedido().stream().anyMatch(lp -> lp.getIdArticulo().equals(id))).map(Pedido::getClientePedido).distinct().forEach(System.out::println);
-			System.out.println();
-		} else if (uds == 0) {
-			System.out.println();
-			System.out.println("Este articulo no se ha vendido");
+		if (art != null) {
+			clientes.values().forEach(c -> System.out.println(c.getNombre() + " - " + pedidos.stream().filter(p -> p.getClientePedido().equals(c)).flatMap(p -> p.getLineaPedido().stream()).filter(lp -> lp.getIdArticulo().equals(id)).mapToInt(LineaPedido::getUnidades).sum()));
 		}
 	}
 
@@ -444,12 +459,7 @@ public class Tienda2025 implements Serializable {
 
 	public void gastoClientes() {
 		System.out.println("Gasto por clientes: ");
-		HashMap<Cliente, Double> gasto = new HashMap<>();
-		clientes.forEach((k, a) -> {
-			double total = pedidos.stream().filter(p -> p.getClientePedido().equals(a)).mapToDouble(p -> p.getLineaPedido().stream().mapToDouble(art -> articulos.get(art.getIdArticulo()).getPvp() * art.getUnidades()).sum()).sum();
-			gasto.put(a, total);
-		});
-		gasto.keySet().stream().sorted(Comparator.comparing(gasto::get).reversed()).forEach(k -> System.out.println(k.getDni() + " - " + k.getNombre() + " - " + gasto.get(k) + "€"));
+		clientes.values().stream().peek(c -> System.out.print(c.getNombre() + " - ")).mapToDouble(c -> pedidos.stream().filter(p -> p.getClientePedido().equals(c)).mapToDouble(p -> p.getLineaPedido().stream().mapToDouble(lp -> lp.getUnidades() * articulos.get(lp.getIdArticulo()).getPvp()).sum()).sum()).forEach(System.out::println);
 	}
 
 	public String solicitaId() {
@@ -918,6 +928,56 @@ public class Tienda2025 implements Serializable {
 			return true;
 		}
 		return false;
+	}
+
+	public void guardarPedidos() {
+		clientes.values().stream().map(c -> new ArrayList<>(List.of(c.getNombre().toUpperCase(), pedidos.stream().filter(p -> p.getClientePedido().equals(c)).toArray(Pedido[]::new)))).filter(l -> ((Pedido[]) l.getLast()).length > 0).forEach(fL -> {
+			try {
+				ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("pedidoCliente_" + fL.getFirst() + ".dat"));
+				oos.writeObject(fL.getLast());
+				System.out.println("ARCHIVOS CREADOS CORRECTAMENTE");
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		});
+	}
+
+	public void buscarPedidos() {
+		try {
+			String dni;
+			boolean valido = true;
+			boolean encontrado = true;
+			sc.nextLine();
+			do {
+				System.out.print(!valido ? "\nEl DNI no es valido\n" : "");
+				System.out.print(!encontrado ? "\nEl DNI no existe\n" : "");
+				System.out.println("DNI CLIENTE PARA VER PEDIDOS ALMACENADOS: ");
+				dni = sc.nextLine();
+				encontrado = true;
+				valido = MetodosAux.validarDni(dni);
+				if (valido) {
+					encontrado = clientes.containsKey(dni);
+				}
+				if (dni.isBlank()) {
+					dni = null;
+				}
+			} while (!valido || !encontrado);
+			if (dni != null) {
+				String nombre = clientes.get(dni).getNombre().toUpperCase();
+				ObjectInputStream ois = new ObjectInputStream(new FileInputStream("pedidoCliente_" + nombre + ".dat"));
+				ArrayList<Pedido> p = new ArrayList<>(List.of(((Pedido[]) ois.readObject())));
+				for (Pedido pedido : p) {
+					System.out.println();
+					System.out.println("PEDIDO: " + pedido.getIdPedido() + " DE: " + nombre.toUpperCase());
+					pedido.getLineaPedido().forEach(lp -> System.out.println(buscaArticulo(lp.getIdArticulo()).getDescripcion() + "\t\tUNIDADES: " + lp.getUnidades()));
+				}
+				System.out.println("FIN ARCHIVO");
+			}
+		} catch (FileNotFoundException e) {
+			System.out.println("EL CLIENTE NO TIENE PEDIDOS GUARDADOS");
+		} catch (IOException | ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public void cargaDatos() {
