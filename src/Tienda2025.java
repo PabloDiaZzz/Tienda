@@ -309,13 +309,15 @@ public class Tienda2025 implements Serializable {
 	public void artCategoria() {
 		while (true) {
 			System.out.println();
-			String[] opciones = new String[]{"categorias", "Perifericos", "Almacenamiento", "Impresoras", "Monitores", "Todos", "Salir"};
+			String[] opciones = new String[]{"categorias", "Perifericos", "Almacenamiento", "Impresoras", "Monitores", "Todos", "Nuevo metodo", "Salir"};
 			int n = opciones.length - 1;
 			MetodosAux.menu(opciones);
 			int opc = sc.nextInt();
 			System.out.println();
-			if (opc == n - 1) {
+			if (opc == n - 2) {
 				listArt();
+			} else if (opc == n - 1) {
+				System.out.println(articulosXCat());
 			} else {
 				System.out.println(opciones[opc].toUpperCase());
 				articulos.values().stream().sorted().filter(art -> art.getIdArticulo().replaceAll("(\\d+)-(\\d+)", "$1").equals(String.valueOf(opc))).forEach(System.out::println);
@@ -748,10 +750,18 @@ public class Tienda2025 implements Serializable {
 		}
 	}
 
+	public HashMap<String, Long> articulosXCat() {
+		//		HashMap<String, Long> res = articulos.keySet().stream().map(a -> a.replaceAll("(\\d+)-(\\d+)", "$1")).collect(Collectors.groupingBy(a -> a, Collectors.counting())).entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1 , HashMap::new));
+		HashMap<String, Long> res = new HashMap<>();
+		for (Articulo a : articulos.values()) {
+			String cat = a.getIdArticulo().replaceAll("(\\d+)-(\\d+)", "$1"); // No uso charAt por si hay categorias de 2 digitos
+			res.put(cat, res.getOrDefault(cat, 0L) + 1);
+		}
+		return res;
+	}
+
 	public void listClientes() {
-		ArrayList<Cliente> values = new ArrayList<>(clientes.values());
-		Collections.sort(values);
-		values.forEach(System.out::println);
+		articulos.values().stream().sorted().forEach(System.out::println);
 	}
 
 	public void listaPedidos() {
@@ -777,7 +787,7 @@ public class Tienda2025 implements Serializable {
 					System.out.println();
 					System.out.print("Introduzca el valor >> ");
 					double v = sc.nextDouble();
-					pedidos.stream().filter(p -> totalPedido(p) > v).sorted(Comparator.comparing(this::totalPedido)).forEachOrdered(System.out::println);
+					pedidos.stream().distinct().filter(p -> totalPedido(p) > v).sorted(Comparator.comparing(this::totalPedido)).forEachOrdered(System.out::println);
 					System.out.println();
 					break;
 			}
@@ -785,15 +795,10 @@ public class Tienda2025 implements Serializable {
 				break;
 			}
 		}
-
 	}
 
 	public double totalPedido(Pedido p) {
-		double total = 0;
-		for (LineaPedido lp : p.getLineaPedido()) {
-			total += articulos.get(lp.getIdArticulo()).getPvp() * lp.getUnidades();
-		}
-		return total;
+		return p.getLineaPedido().stream().mapToDouble(lp -> lp.getUnidades() * articulos.get(lp.getIdArticulo()).getPvp()).sum();
 	}
 
 	public void stock(int unidadesPed, String id) throws StockAgotado, StockInsuficiente {
@@ -801,7 +806,6 @@ public class Tienda2025 implements Serializable {
 		if (n == 0) {
 			throw new StockAgotado("Stock AGOTADO para el artículo " + articulos.get(id).getDescripcion());
 		} else if (n < unidadesPed) {
-
 			throw new StockInsuficiente("Stock INSUFICIENTE para el artículo " + articulos.get(id).getDescripcion() + " (sólo quedan " + n + " unidades)");
 		}
 	}
