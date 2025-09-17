@@ -1,4 +1,4 @@
-// NECESARIO AL MENOS EL METODO MetodosAux.java
+// NECESARIO AL MENOS EL METODO MetodosAux.java y libreria Gestor (README.md)
 
 import java.io.*;
 import java.time.LocalDate;
@@ -17,7 +17,7 @@ public class Tienda2025v2 implements Serializable {
 		this.clientes = new HashMap<>();
 	}
 
-	public static void main(String[] args) {
+	static void main(String[] args) {
 		Tienda2025v2 tienda = new Tienda2025v2();
 		boolean cargado = tienda.importarTienda();
 		if (!cargado) {
@@ -268,7 +268,7 @@ public class Tienda2025v2 implements Serializable {
 					List<String> b = new ArrayList<>();
 					b.add(a.getIdArticulo());
 					b.add(a.getDescripcion());
-					b.add(String.valueOf(pedidos.stream().flatMap(p -> p.getLineaPedido().stream())
+					b.add(String.valueOf(pedidos.stream().flatMap(p -> p.getCestaCompra().stream())
 							.filter(lp -> lp.getIdArticulo().equals(a.getIdArticulo()))
 							.mapToInt(LineaPedido::getUnidades)
 							.sum()));
@@ -288,7 +288,7 @@ public class Tienda2025v2 implements Serializable {
 		sc.nextLine();
 		Cliente cliente = new Cliente("", "", "", "");
 		System.out.print("Introduzca el DNI >> ");
-		String dni = sc.nextLine();
+		String dni = sc.nextLine().toUpperCase();
 		if (dni.isBlank()) {
 			return;
 		}
@@ -296,7 +296,7 @@ public class Tienda2025v2 implements Serializable {
 		while (!valido) {
 			System.out.println("\nEl DNI no es valido");
 			System.out.print(">> ");
-			dni = sc.nextLine();
+			dni = sc.nextLine().toUpperCase();
 			if (dni.isBlank()) {
 				return;
 			}
@@ -306,7 +306,7 @@ public class Tienda2025v2 implements Serializable {
 		while (dupe) {
 			System.out.print("\nEl DNI ya esta en uso");
 			System.out.print(" >> ");
-			dni = sc.nextLine();
+			dni = sc.nextLine().toUpperCase();
 			dupe = clientes.containsKey(dni);
 		}
 		cliente.setDni(dni);
@@ -354,7 +354,7 @@ public class Tienda2025v2 implements Serializable {
 						System.out.print(!valido ? "\nEl DNI no es valido\n" : "");
 						System.out.print(encontrado ? "\nEl DNI ya existe\n" : "");
 						System.out.print("Introduzca el DNI >> ");
-						dniMod = sc.nextLine();
+						dniMod = sc.nextLine().toUpperCase();
 						encontrado = false;
 						valido = MetodosAux.validarDni(dniMod);
 						if (valido) {
@@ -447,7 +447,7 @@ public class Tienda2025v2 implements Serializable {
 			System.out.print(!valido ? "\nEl DNI no es valido\n" : "");
 			System.out.print(!encontrado ? "\nEl DNI no existe\n" : "");
 			System.out.print("Introduzca el DNI >> ");
-			dni = sc.nextLine();
+			dni = sc.nextLine().toUpperCase();
 			encontrado = true;
 			valido = MetodosAux.validarDni(dni);
 			if (valido) {
@@ -496,7 +496,7 @@ public class Tienda2025v2 implements Serializable {
 			for (Pedido p : pedidos) {
 				if (p.getClientePedido().getDni().equalsIgnoreCase(dni) && p.getFechaPedido().getYear() == year) {
 					id = Integer.parseInt(p.getIdPedido().split("[-/]")[1]);
-					System.out.println(String.format("%03d", id) + " - " + p.getLineaPedido());
+					System.out.println(String.format("%03d", id) + " - " + p.getCestaCompra());
 					contador++;
 				}
 			}
@@ -532,7 +532,7 @@ public class Tienda2025v2 implements Serializable {
 				case 1:
 					String opc, idT, pedidasS = "";
 					int pedidas;
-					ArrayList<LineaPedido> CestaCompraAux = pMod.getLineaPedido();
+					ArrayList<LineaPedido> CestaCompraAux = pMod.getCestaCompra();
 					System.out.println("Introduzca los IDs uno a uno");
 					sc.nextLine();
 					do {
@@ -573,14 +573,14 @@ public class Tienda2025v2 implements Serializable {
 						}
 					} while (true);
 					if (!CestaCompraAux.isEmpty()) {
-						pMod.setLineaPedido(CestaCompraAux);
+						pMod.setCestaCompra(CestaCompraAux);
 					}
 					break;
 				case 2:
 					while (true) {
 						ArrayList<String> opcionesArts = new ArrayList<>();
 						opcionesArts.add(pMod.getIdPedido());
-						for (LineaPedido l : pMod.getLineaPedido()) {
+						for (LineaPedido l : pMod.getCestaCompra()) {
 							opcionesArts.add(l.getIdArticulo() + " - " + String.join(" ", Arrays.stream(articulos.get(l.getIdArticulo()).getDescripcion().split(" ")).map(String::trim).toArray(String[]::new)) + " (" + l.getUnidades() + ")");
 						}
 						opcionesArts.add("Salir");
@@ -601,7 +601,7 @@ public class Tienda2025v2 implements Serializable {
 						}
 						Articulo art;
 						try {
-							art = articulos.get(pMod.getLineaPedido().get(option - 1).getIdArticulo());
+							art = articulos.get(pMod.getCestaCompra().get(option - 1).getIdArticulo());
 						} catch (IndexOutOfBoundsException ignored) {
 							continue;
 						}
@@ -609,8 +609,8 @@ public class Tienda2025v2 implements Serializable {
 						int unidades = sc.nextInt();
 						try {
 							stock(unidades, art.getIdArticulo());
-							articulos.get(art.getIdArticulo()).setExistencias(articulos.get(art.getIdArticulo()).getExistencias() + pMod.getLineaPedido().get(option - 1).getUnidades());
-							pMod.getLineaPedido().get(option - 1).setUnidades(unidades);
+							articulos.get(art.getIdArticulo()).setExistencias(articulos.get(art.getIdArticulo()).getExistencias() + pMod.getCestaCompra().get(option - 1).getUnidades());
+							pMod.getCestaCompra().get(option - 1).setUnidades(unidades);
 							articulos.get(art.getIdArticulo()).setExistencias(articulos.get(art.getIdArticulo()).getExistencias() - unidades);
 						} catch (StockAgotado | StockInsuficiente ex) {
 							System.out.println(ex.getMessage());
@@ -619,7 +619,7 @@ public class Tienda2025v2 implements Serializable {
 							sc.nextLine();
 							String yn = sc.nextLine();
 							if (yn.equalsIgnoreCase("S")) {
-								pMod.getLineaPedido().get(option - 1).setUnidades(disponibles);
+								pMod.getCestaCompra().get(option - 1).setUnidades(disponibles);
 								articulos.get(art.getIdArticulo()).setExistencias(0);
 							}
 						}
@@ -629,7 +629,7 @@ public class Tienda2025v2 implements Serializable {
 					while (true) {
 						ArrayList<String> opcionesArts = new ArrayList<>();
 						opcionesArts.add(pMod.getIdPedido());
-						for (LineaPedido l : pMod.getLineaPedido()) {
+						for (LineaPedido l : pMod.getCestaCompra()) {
 							opcionesArts.add(l.getIdArticulo() + " - " + String.join(" ", Arrays.stream(articulos.get(l.getIdArticulo()).getDescripcion().split(" ")).map(String::trim).filter(v -> !v.isEmpty()).toArray(String[]::new)) + " (" + l.getUnidades() + ")");
 						}
 						opcionesArts.add("Salir");
@@ -648,16 +648,16 @@ public class Tienda2025v2 implements Serializable {
 							sc.nextLine();
 							break;
 						}
-						articulos.get(pMod.getLineaPedido().get(option - 1).getIdArticulo()).setExistencias(articulos.get(pMod.getLineaPedido().get(option - 1).getIdArticulo()).getExistencias() + pMod.getLineaPedido().get(option - 1).getUnidades());
-						pMod.getLineaPedido().remove(option - 1);
+						articulos.get(pMod.getCestaCompra().get(option - 1).getIdArticulo()).setExistencias(articulos.get(pMod.getCestaCompra().get(option - 1).getIdArticulo()).getExistencias() + pMod.getCestaCompra().get(option - 1).getUnidades());
+						pMod.getCestaCompra().remove(option - 1);
 					}
 					break;
 				case 4:
-					ArrayList<Articulo> values = new ArrayList<>(List.of(pMod.getLineaPedido().stream().map(v -> articulos.get(v.getIdArticulo())).toArray(Articulo[]::new)));
+					ArrayList<Articulo> values = new ArrayList<>(List.of(pMod.getCestaCompra().stream().map(v -> articulos.get(v.getIdArticulo())).toArray(Articulo[]::new)));
 					Collections.sort(values);
 					ArrayList<ArrayList<Dato>> tabla = new ArrayList<>();
 					tabla.add(new ArrayList<>());
-					for (LineaPedido lp : pMod.getLineaPedido()) {
+					for (LineaPedido lp : pMod.getCestaCompra()) {
 						tabla.add(new ArrayList<>());
 					}
 					tabla.getFirst().add(new Dato("ID",0,"Texto"));
@@ -707,7 +707,7 @@ public class Tienda2025v2 implements Serializable {
 			for (Pedido p : pedidos) {
 				if (p.getClientePedido().getDni().equalsIgnoreCase(dni) && p.getFechaPedido().getYear() == year) {
 					id = Integer.parseInt(p.getIdPedido().split("[-/]")[1]);
-					System.out.println(String.format("%03d", id) + " - " + p.getLineaPedido());
+					System.out.println(String.format("%03d", id) + " - " + p.getCestaCompra());
 					contador++;
 				}
 			}
@@ -718,7 +718,7 @@ public class Tienda2025v2 implements Serializable {
 				id = sc.nextInt();
 				for (Pedido p : pedidos) {
 					if (p.getIdPedido().equalsIgnoreCase(dni + "-" + String.format("%03d", id) + "/" + year)) {
-						for (LineaPedido l : p.getLineaPedido()) {
+						for (LineaPedido l : p.getCestaCompra()) {
 							articulos.get(l.getIdArticulo()).setExistencias(articulos.get(l.getIdArticulo()).getExistencias() + l.getUnidades());
 						}
 						pedidos.remove(p);
@@ -774,7 +774,7 @@ public class Tienda2025v2 implements Serializable {
 						tabla.get(i).add(new Dato(pedidos.get(i - 1).getIdPedido(), 0, "Clave"));
 						tabla.get(i).add(new Dato(pedidos.get(i - 1).getClientePedido().getDni(), 0, "Clave"));
 						tabla.get(i).add(new Dato(pedidos.get(i - 1).getFechaPedido().toString(), 0, "Texto"));
-						tabla.get(i).add(new Dato(pedidos.get(i - 1).getLineaPedido().toString().substring(1, pedidos.get(i - 1).getLineaPedido().toString().length() - 1), 0, "Texto"));
+						tabla.get(i).add(new Dato(pedidos.get(i - 1).getCestaCompra().toString().substring(1, pedidos.get(i - 1).getCestaCompra().toString().length() - 1), 0, "Texto"));
 						tabla.get(i).add(new Dato(String.format("%.2f", totalPedido(pedidos.get(i - 1))) + "€", 0, "Texto"));
 					}
 					Gestor2.showInfo(tabla);
@@ -797,7 +797,7 @@ public class Tienda2025v2 implements Serializable {
 						tabla.get(i).add(new Dato(pedidos.get(i - 1).getIdPedido(), 0, "Clave"));
 						tabla.get(i).add(new Dato(pedidos.get(i - 1).getClientePedido().getDni(), 0, "Clave"));
 						tabla.get(i).add(new Dato(pedidos.get(i - 1).getFechaPedido().toString(), 0, "Texto"));
-						tabla.get(i).add(new Dato(pedidos.get(i - 1).getLineaPedido().toString().substring(1, pedidos.get(i - 1).getLineaPedido().toString().length() - 1), 0, "Texto"));
+						tabla.get(i).add(new Dato(pedidos.get(i - 1).getCestaCompra().toString().substring(1, pedidos.get(i - 1).getCestaCompra().toString().length() - 1), 0, "Texto"));
 						tabla.get(i).add(new Dato(String.format("%.2f", totalPedido(pedidos.get(i - 1))) + "€", 0, "Texto"));
 					}
 					Gestor2.showInfo(tabla);
@@ -822,7 +822,7 @@ public class Tienda2025v2 implements Serializable {
 						tabla.get(i).add(new Dato(pedidosFiltrados.get(i - 1).getIdPedido(), 0, "Clave"));
 						tabla.get(i).add(new Dato(pedidosFiltrados.get(i - 1).getClientePedido().getDni(), 0, "Clave"));
 						tabla.get(i).add(new Dato(pedidosFiltrados.get(i - 1).getFechaPedido().toString(), 0, "Texto"));
-						tabla.get(i).add(new Dato(pedidosFiltrados.get(i - 1).getLineaPedido().toString().substring(1, pedidosFiltrados.get(i - 1).getLineaPedido().toString().length() - 1), 0, "Texto"));
+						tabla.get(i).add(new Dato(pedidosFiltrados.get(i - 1).getCestaCompra().toString().substring(1, pedidosFiltrados.get(i - 1).getCestaCompra().toString().length() - 1), 0, "Texto"));
 						tabla.get(i).add(new Dato(String.format("%.2f", totalPedido(pedidosFiltrados.get(i - 1))) + "€", 0, "Texto"));
 					}
 					Gestor2.showInfo(tabla);
@@ -839,7 +839,7 @@ public class Tienda2025v2 implements Serializable {
 
 	public double totalPedido(Pedido p) {
 		double total = 0;
-		for (LineaPedido lp : p.getLineaPedido()) {
+		for (LineaPedido lp : p.getCestaCompra()) {
 			total += articulos.get(lp.getIdArticulo()).getPvp() * lp.getUnidades();
 		}
 		return total;

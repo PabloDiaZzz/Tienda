@@ -43,11 +43,11 @@ public class Pedido implements Comparable<Pedido>, Serializable {
 		this.fechaPedido = fechaPedido;
 	}
 
-	public ArrayList<LineaPedido> getLineaPedido() {
+	public ArrayList<LineaPedido> getCestaCompra() {
 		return cestaCompra;
 	}
 
-	public void setLineaPedido(ArrayList<LineaPedido> cestaCompra) {
+	public void setCestaCompra(ArrayList<LineaPedido> cestaCompra) {
 		this.cestaCompra = cestaCompra;
 	}
 

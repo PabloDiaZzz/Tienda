@@ -36,7 +36,10 @@ public class MetodosAux {
 		a = Arrays.stream(a).skip(1).toArray(String[]::new);
 		int maxValue = 0;
 		for (int i = 0; i < a.length; i++) {
-			maxValue = Math.max(maxValue, String.valueOf(a.length).length() - String.valueOf(i).length() + ((input ? i + ". " : "") + a[i]).length());
+			maxValue = Math.max(
+					maxValue,
+					String.valueOf(a.length).length() - String.valueOf(i)
+							.length() + ((input ? i + ". " : "") + a[i]).length());
 		}
 		maxValue = Math.max(maxValue, title.length());
 		System.out.print("╔═");
@@ -72,7 +75,7 @@ public class MetodosAux {
 		menu(true, a);
 	}
 
-	public boolean esDouble(String s) {
+	public static boolean esDouble(String s) {
 		try {
 			Double.parseDouble(s);
 			return true;
